@@ -1,7 +1,7 @@
 
 #!/usr/bin/env python3
 import rospy
-from zlac_driver.ZLAC8015D import Controller
+from zlac8015d import ZLAC8015D
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Int16
 from std_msgs.msg import Float32
@@ -46,21 +46,21 @@ def cmd_vel_callback(data):
 	cmd_rpm_right.publish(rightrpm)
 
 	#Send data to serial
-	motors.set_rpm(leftrpm,rightrpm,1)
+	motors.set_rpm(leftrpm,rightrpm)
 	#motors.set_rpm(-leftrpm,-rightrpm,2)
 
 
-def motor_init(accel_time, decel_time, slaveid):
+def motor_init(accel_time, decel_time):
 	# Disable motor
-	motors.disable_motor(slaveid)
+	motors.disable_motor()
 
 	# Set acceleration and deceleration time
-	motors.set_accel_time(accel_time,accel_time,slaveid)
-	motors.set_decel_time(decel_time,decel_time,slaveid)
+	motors.set_accel_time(accel_time,accel_time)
+	motors.set_decel_time(decel_time,decel_time)
 
 	# Set speed control mode
-	motors.set_mode(3,slaveid)
-	motors.enable_motor(slaveid)
+	motors.set_mode(3)
+	motors.enable_motor()
 
 
 
@@ -71,15 +71,16 @@ if __name__ == "__main__":
 	rate = rospy.Rate(100)
 
 	# Getting ROS params
-	port = rospy.get_param("~port", "/dev/ttyACM0")
+	port = rospy.get_param("~port", "/dev/ttyUSB0")
 	coef_linear = rospy.get_param("~coef_linear", 66)
 	coef_angular = rospy.get_param("~coef_angular", 66)
 
 
 	# Creating driver instance
-	motors = Controller(port=port)
-	motor_init(150, 150, 1)
-	#motor_init(150, 150, 2)
+	motors = ZLAC8015D.Controller(port="/dev/ttyUSB0")
+	# motors = Controller(port=port)
+	motor_init(1000, 1000)
+	#motor_init(150, 150, )
 
 	# Setup subscriber and publisher
 	rospy.loginfo("# ZLAC8015D | Setup subscriber")
