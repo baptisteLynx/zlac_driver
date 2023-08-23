@@ -1,7 +1,7 @@
 
 #!/usr/bin/env python3
 import rospy
-from zlac8015d import ZLAC8015D
+from src.zlac_driver.ZLAC8015D import Controller
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Int16
 from std_msgs.msg import Float32
@@ -77,7 +77,8 @@ if __name__ == "__main__":
 
 
 	# Creating driver instance
-	motors = ZLAC8015D.Controller(port="/dev/ttyUSB0")
+	motors = Controller(port="/dev/ttyUSB0")
+	# motors = ZLAC8015D.Controller(port="/dev/ttyUSB0")
 	# motors = Controller(port=port)
 	# motor_init(1000, 1000)
 	motor_init(100, 100)
