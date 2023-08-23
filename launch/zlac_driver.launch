@@ -1,7 +1,6 @@
 <launch>
-  <arg name="driver_yaml" default="$(env ZLAC_YAML)"/>
   <node name="zlac_driver_control" pkg="zlac_driver" type="test_speed_control.py" output="screen" respawn="true">
-    <rosparam command="load" file="$(arg driver_yaml)" />
+    <rosparam command="load" file="$(find zlac_driver)/config/zlac8015d.yaml"/>
   </node>
 
   <!-- <node pkg="joy" type="joy_node" name="joy">

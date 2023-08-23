@@ -30,10 +30,7 @@ import time
 
 
 class DiffDrive:
-    """Differential drive kinematics for 4-wheel robot
-    Ref 1: https://husarion.com/tutorials/ros-tutorials/3-simple-kinematics-for-mobile-robot/
-    Ref 2: http://matwbn.icm.edu.pl/ksiazki/amc/amc14/amc1445.pdf
-    Ref 3: https://github.com/TiderFang/motor_control_bus/blob/master/diff_car_controller/scripts/car_server.py
+    """Differential drive kinematics for 2-wheel robot
     """
 
     def __init__(self, wheel_radius, track_width):

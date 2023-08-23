@@ -6,6 +6,9 @@ loop_rate: 100.0
 # True:publish tf
 pub_tf: False
 
+# Control mode
+speed_control: True
+
 # motor port
 port: "/dev/ttyUSB0"
 
@@ -17,28 +20,24 @@ decel_time: 100
 torque_mode: False
 
 # Wheel radius [meters]
-wheel_radius: 0.194
+wheel_radius: 0.1016
 
 # Track width [meters]
 track_width: 0.6405
 
-# CAN node ID for front left wheel
-wheel_ids:
-  - front_left: 1
-  - back_left: 2
-  - front_right: 3
-  - back right: 4
+# Motor controller ID
+slave_id: 1
 
 # Maximum forward/backward speed [m/s]
 max_vx: 2.0
 
 # Maximum angular velocity [rad/s]
-max_w: 1.57
+max_w: 1.5
 
 # Maximum linear acceleration, m/s/s
-max_lin_accel: 10
+# max_lin_accel: 10
 # Maximum angular acceleration, rad/s/s
-max_ang_accel: 15
+# max_ang_accel: 15
 
 odom_frame: "odom_link"
 robot_frame: "base_link"

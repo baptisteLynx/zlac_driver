@@ -1,7 +1,7 @@
 
 #!/usr/bin/env python3
 import rospy
-from src.zlac_driver.ZLAC8015D import Controller
+from zlac_driver.ZLAC8015D import Controller
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Int16
 from std_msgs.msg import Float32
