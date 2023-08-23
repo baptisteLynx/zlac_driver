@@ -77,9 +77,8 @@ if __name__ == "__main__":
 
 
 	# Creating driver instance
-	motors = Controller(port="/dev/ttyUSB0")
+	motors = Controller(port=port)
 	# motors = ZLAC8015D.Controller(port="/dev/ttyUSB0")
-	# motors = Controller(port=port)
 	# motor_init(1000, 1000)
 	motor_init(100, 100)
 
