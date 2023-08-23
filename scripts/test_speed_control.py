@@ -79,8 +79,8 @@ if __name__ == "__main__":
 	# Creating driver instance
 	motors = ZLAC8015D.Controller(port="/dev/ttyUSB0")
 	# motors = Controller(port=port)
-	motor_init(1000, 1000)
-	#motor_init(150, 150, )
+	# motor_init(1000, 1000)
+	motor_init(100, 100)
 
 	# Setup subscriber and publisher
 	rospy.loginfo("# ZLAC8015D | Setup subscriber")
