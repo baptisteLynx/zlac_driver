@@ -1,5 +1,5 @@
 <launch>
-  <node name="zlac_driver_control" pkg="zlac_driver" type="test_speed_control.py" output="screen" respawn="true">
+  <node name="zlac_driver_control" pkg="zlac_driver" type="driver_node.py" output="screen" respawn="true">
     <rosparam command="load" file="$(find zlac_driver)/config/zlac8015d.yaml"/>
   </node>
 

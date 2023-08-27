@@ -38,14 +38,10 @@ class DiffDrive:
         self._track_width = track_width 
         self._odom = {'x':0,'y':0,'yaw':0,'x_dot':0,'y_dot':0,'v':0,'w':0}
 
-        self._fl_pos = 0 # Front left encoder position
-        self._bl_pos = 0 # Back left
-        self._br_pos = 0 # Back right
-        self._fr_pos = 0 # Front right
-        self._fl_vel = 0 # Front left wheel angular velocity in rad/s
-        self._bl_vel = 0 
-        self._br_vel = 0
-        self._fr_vel = 0
+        self._l_pos = 0 # Left encoder position
+        self._r_pos = 0 # Right right
+        self._l_vel = 0 # left wheel angular velocity in rad/s
+        self._r_vel = 0
 
     def calcWheelVel(self,v,w):
         """Calculates the left and right wheel speeds in rad/s from vx and w
@@ -63,7 +59,7 @@ class DiffDrive:
         wr = 1/self._wheel_radius *(v + w * self._track_width/2)
         wl = 1/self._wheel_radius *(v - w * self._track_width/2)
         return (wl,wr)
-  
+    
     def calcRobotOdom(self, dt):
         """calculates linear and angular states from the left and right wheel speeds
 
@@ -72,19 +68,13 @@ class DiffDrive:
         @param dt time stamp in seconds
         """
 
-        # TODO Do we even need this?
-        angular_pos_l = (self._fl_pos + self._bl_pos)/2
-        angular_pos_r = (self._br_pos + self._fr_pos)/2
-
-        wl = (self._fl_vel + self._bl_vel)/2
-        wr = (self._br_vel + self._fr_vel)/2
-
-        # angular_pos = (angular_pos_r - angular_pos_l)*self._wheel_radius/self._track_width
+        wl = self._l_vel
+        wr = self._r_vel
 
 
+        angular_vel = self._wheel_radius/self._track_width * (wr - wl) #[rad/sec]
+        linear_vel = (self._wheel_radius/2)*(wr + wl)                   #[m/sec]
 
-        angular_vel = self._wheel_radius/self._track_width * (wr - wl)
-        linear_vel = (self._wheel_radius/2)*(wr + wl)
 
         angular_pos = self._odom['yaw'] + angular_vel * dt
 

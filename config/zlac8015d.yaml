@@ -4,7 +4,7 @@
 loop_rate: 100.0
 
 # True:publish tf
-pub_tf: False
+pub_tf: True
 
 # Control mode
 speed_control: True
@@ -17,7 +17,7 @@ accel_time: 100
 decel_time: 100
 
 # If True torque-based velocity controller is used. Otherwise, velocity setpoints are going to be directly sent
-torque_mode: False
+speed_mode: True
 
 # Wheel radius [meters]
 wheel_radius: 0.1016
