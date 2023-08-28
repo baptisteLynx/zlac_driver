@@ -236,6 +236,7 @@ class Driver:
         """
         try:
             vl, vr = self.motors.get_rpm()
+            rospy.loginfo(f"Motor current RPM, L:[{vl}], R[{vr}]")
             self._diff_drive._l_vel = self.rpmToRps(vl)
             self._diff_drive._r_vel = self.rpmToRps(vr)
 
