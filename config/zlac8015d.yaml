@@ -3,7 +3,7 @@
 # ROS loop rate [Hz]
 loop_rate: 100.0
 
-# True:publish tf
+# True: publish tf
 pub_tf: True
 
 # Control mode
@@ -12,9 +12,9 @@ speed_control: True
 # motor port
 port: "/dev/ttyUSB0"
 
-#wheels accelaration and deaccelaration time
-accel_time: 100
-decel_time: 100
+#wheels acceleration and deceleration time
+accel_time: 1000
+decel_time: 1000
 
 # If True torque-based velocity controller is used. Otherwise, velocity setpoints are going to be directly sent
 speed_mode: True
@@ -29,10 +29,10 @@ track_width: 0.6405
 slave_id: 1
 
 # Maximum forward/backward speed [m/s]
-max_vx: 2.0
+max_vx: 1.5
 
 # Maximum angular velocity [rad/s]
-max_w: 1.5
+max_w: 1
 
 # Maximum linear acceleration, m/s/s
 # max_lin_accel: 10
