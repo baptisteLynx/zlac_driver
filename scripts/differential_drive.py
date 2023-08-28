@@ -56,8 +56,8 @@ class DiffDrive:
         @return wl Left wheel velocity in rad/s
         @return wr Right wheel velocity in rad/s
         """
-        wr = 1/self._wheel_radius *(v - w * self._track_width/2)
-        wl = 1/self._wheel_radius *(v + w * self._track_width/2)
+        wr = 1/self._wheel_radius *(v + w * self._track_width/2)
+        wl = 1/self._wheel_radius *(v - w * self._track_width/2)
         return (wl,wr)
     
     def calcRobotOdom(self, dt):
