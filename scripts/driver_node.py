@@ -39,7 +39,7 @@ class Driver:
         
         self._wheel_radius = rospy.get_param("~wheel_radius", 0.1016)
 
-        self._track_width = rospy.get_param("~track_width", 0.8)
+        self._track_width = rospy.get_param("~track_width", 0.45)
 
         self._max_vx = rospy.get_param("~max_vx", 1.5)
         self._max_w = rospy.get_param("~max_w", 1.0)
