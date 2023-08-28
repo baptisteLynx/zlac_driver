@@ -131,15 +131,15 @@ class Driver:
             rospy.loginfo(f"Motor is in fault state, Left Motor : {L_fault}, Right Motor : {R_fault}")
             rospy.loginfo(f"Motor fault code, Left Motor: {L_code}, Right Motor : {R_code}")
 
-            if(L_code==self.UNDER_VOLT or R_code==self.UNDER_VOLT):
+            if(L_code==self.motors.UNDER_VOLT or R_code==self.motors.UNDER_VOLT):
                 rospy.loginfo(f"Motor fault reason - Under Voltage")
-            elif(L_code==self.OVER_CURR or R_code==self.OVER_CURR):
+            elif(L_code==self.motors.OVER_CURR or R_code==self.motors.OVER_CURR):
                 rospy.loginfo(f"Motor fault reason - Over Current")
-            elif(L_code==self.OVER_LOAD or R_code==self.OVER_LOAD):
+            elif(L_code==self.motors.OVER_LOAD or R_code==self.motors.OVER_LOAD):
                 rospy.loginfo(f"Motor fault reason - Over Load")
-            elif(L_code==self.MOTOR_BAD or R_code==self.MOTOR_BAD):
+            elif(L_code==self.motors.MOTOR_BAD or R_code==self.motors.MOTOR_BAD):
                 rospy.loginfo(f"Motor fault reason - Motor damage")
-            elif(L_code==self.HIGH_TEMP or R_code==self.HIGH_TEMP):
+            elif(L_code==self.motors.HIGH_TEMP or R_code==self.motors.HIGH_TEMP):
                 rospy.loginfo(f"Motor fault reason - High Temperature")
 
             rospy.loginfo(f"Resetting Motor fault.....")
