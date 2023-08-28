@@ -67,6 +67,8 @@ class Driver:
         # If True, odom TF will be published
         self._pub_tf = rospy.get_param("~pub_tf", False)
 
+        self.motor_reset_alarm_conter = 0
+
 
         try: 
             self.motors = Controller(port=self._port)
@@ -119,6 +121,32 @@ class Driver:
     def rpsToRpm(self, rad):
         return rad * 9.5493
 
+    def check_driver_health(self):
+        """
+        This method checks the driver errors if any.
+        """
+        (L_fault, L_code),(R_fault, R_code) = self.motors.get_fault_code()
+
+        if (L_fault or R_fault):
+            rospy.loginfo(f"Motor is in fault state, Left Motor : {L_fault}, Right Motor : {R_fault}")
+            rospy.loginfo(f"Motor fault code, Left Motor: {L_code}, Right Motor : {R_code}")
+
+            if(L_code==self.UNDER_VOLT or R_code==self.UNDER_VOLT):
+                rospy.loginfo(f"Motor fault reason - Under Voltage")
+            elif(L_code==self.OVER_CURR or R_code==self.OVER_CURR):
+                rospy.loginfo(f"Motor fault reason - Over Current")
+            elif(L_code==self.OVER_LOAD or R_code==self.OVER_LOAD):
+                rospy.loginfo(f"Motor fault reason - Over Load")
+            elif(L_code==self.MOTOR_BAD or R_code==self.MOTOR_BAD):
+                rospy.loginfo(f"Motor fault reason - Motor damage")
+            elif(L_code==self.HIGH_TEMP or R_code==self.HIGH_TEMP):
+                rospy.loginfo(f"Motor fault reason - High Temperature")
+
+            rospy.loginfo(f"Resetting Motor fault.....")
+            self.motors.clear_alarm()
+            self.motor_reset_alarm_conter +=1
+            rospy.loginfo(f"Reset Done.")
+        
     def applyControls(self):
         """
         Computes and applyies control signals based on the control mode (velocity vs. torque)
@@ -139,7 +167,7 @@ class Driver:
         w = msg.angular.z
         rospy.loginfo(f"cmd_vel received for motors, vx : {vx}, w:{w}")
 
-        # Initialize final commanded velocities,, after applying constraitns
+        # Initialize final commanded velocities, after applying constraints
         v_d = vx
         w_d = w
 
@@ -170,7 +198,7 @@ class Driver:
         # max_v = current_v + dt*lin_acc
         # max_w = current_w + dt*ang_acc
 
-        # # Compute & compare errors to deceide whether to scale down the desired velocity
+        # # Compute & compare errors to decide whether to scale down the desired velocity
         # # For linear vel
         # ev_d = abs(vx-current_v)
         # ev_max = abs(max_v - current_v)
@@ -201,20 +229,22 @@ class Driver:
         rospy.loginfo(f"Motor target RPM, L=[{self._target_whl_rpm['l']}], R=[{self._target_whl_rpm['r']}]")
 
         # Apply control in the main loop
-        
-
-        
 
     def pubOdom(self):
-        """Computes & publishes odometry msg
+        """ Computes & publishes odometry msg
         """
         try:
             vl, vr = self.motors.get_rpm()
             self._diff_drive._l_vel = self.rpmToRps(vl)
             self._diff_drive._r_vel = self.rpmToRps(vr)
+
+            # resetting motor_reset_alarm_conter
+            if vl > 0 or vr > 0:
+                self.motor_reset_alarm_conter = 0
+                
         except Exception as e :
             rospy.logerr_throttle(1, " Error in pubOdom: %s. Check driver connection", e)
-            #rospy.logerr_throttle(1, "Availabled nodes = %s", self._network._network.scanner.nodes)
+            #rospy.logerr_throttle(1, "Available nodes = %s", self._network._network.scanner.nodes)
 
         now = time()
 
@@ -319,7 +349,7 @@ class Driver:
     def mainLoop(self):
         rate = rospy.Rate(self._loop_rate)
 
-        while not rospy.is_shutdown():
+        while not rospy.is_shutdown() and self.motor_reset_alarm_conter < 10:
             now = time()
 
             dt = now - self._last_cmd_t
@@ -333,6 +363,8 @@ class Driver:
 
             # Publish wheel odom
             self.pubOdom()
+
+            self.check_driver_health()
             # Publish Motors state
             # self.pubMotorState()
             
