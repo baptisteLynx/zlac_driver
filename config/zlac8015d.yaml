@@ -13,8 +13,8 @@ speed_control: True
 port: "/dev/ttyUSB0"
 
 #wheels acceleration and deceleration time
-accel_time: 1000
-decel_time: 1000
+accel_time: 500
+decel_time: 500
 
 # If True torque-based velocity controller is used. Otherwise, velocity setpoints are going to be directly sent
 speed_mode: True
