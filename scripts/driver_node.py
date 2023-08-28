@@ -144,7 +144,7 @@ class Driver:
 
             rospy.loginfo(f"Resetting Motor fault.....")
             self.motors.clear_alarm()
-            self.motor_reset_alarm_conter +=1
+            self.motor_reset_alarm_conter += 1 
             rospy.loginfo(f"Reset alarm count: [{self.motor_reset_alarm_conter}].")
             rospy.loginfo(f"Reset Done.")
         
@@ -240,8 +240,9 @@ class Driver:
             self._diff_drive._r_vel = self.rpmToRps(vr)
 
             # resetting motor_reset_alarm_conter
-            if vl > 0 or vr > 0:
-                self.motor_reset_alarm_conter = 0
+            # if vl > 0 or vr > 0:
+            #     rospy.loginfo(f"Reset alarm count:[{self.motor_reset_alarm_conter}] to 0.")
+            #     self.motor_reset_alarm_conter = 0
                 
         except Exception as e :
             rospy.logerr_throttle(1, " Error in pubOdom: %s. Check driver connection", e)
