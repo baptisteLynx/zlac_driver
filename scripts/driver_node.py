@@ -145,6 +145,7 @@ class Driver:
             rospy.loginfo(f"Resetting Motor fault.....")
             self.motors.clear_alarm()
             self.motor_reset_alarm_conter +=1
+            rospy.loginfo(f"Reset alarm count: [{self.motor_reset_alarm_conter}].")
             rospy.loginfo(f"Reset Done.")
         
     def applyControls(self):
@@ -165,7 +166,7 @@ class Driver:
         
         vx = msg.linear.x
         w = msg.angular.z
-        rospy.loginfo(f"cmd_vel received for motors, vx : {vx}, w:{w}")
+        # rospy.loginfo(f"cmd_vel received for motors, vx : {vx}, w:{w}")
 
         # Initialize final commanded velocities, after applying constraints
         v_d = vx
