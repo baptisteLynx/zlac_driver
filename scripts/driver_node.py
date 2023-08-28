@@ -25,7 +25,7 @@ class Driver:
         self._slave_id = rospy.get_param("~slave_id", 1)
 
         self._wheel_ids = {"l":1, "r":2}
-        self._flip_direction = {"l": -1, "r": 1}
+        self._flip_direction = {"l": 1, "r": -1}
 
         # Velocity vs. Troque modes
         self._speed_control = rospy.get_param("~speed_mode", True)
