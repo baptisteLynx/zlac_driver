@@ -26,7 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import logging
 from math import *
-import time
+import numpy as np
 
 
 class DiffDrive:
@@ -36,7 +36,9 @@ class DiffDrive:
     def __init__(self, wheel_radius, track_width):
         self._wheel_radius = wheel_radius
         self._track_width = track_width 
-        self._odom = {'x':0,'y':0,'yaw':0,'x_dot':0,'y_dot':0,'v':0,'w':0}
+        self._odom = {'x':0,'y':0,'yaw':0,'v':0,'w':0}
+
+        self.path = "None"
 
         self._l_pos = 0 # Left encoder position
         self._r_pos = 0 # Right right
@@ -68,28 +70,63 @@ class DiffDrive:
         @param dt time stamp in seconds
         """
 
-        wl = self._l_vel
-        wr = self._r_vel
+        vl = self._l_vel
+        vr = self._r_vel
 
+        if (vl > 0.0) and (vr < 0.0) and (abs(vl) == abs(vr)):
+            ## rotatiing CW
+            linear_vel = 0
+            angular_vel = (vl-vr)/self._track_width
+            self._odom['yaw'] = self._odom['yaw'] + angular_vel*dt
 
-        angular_vel = (wr - wl)/self._track_width  #[rad/sec]
-        linear_vel = (wr + wl)/2                   #[m/sec]
+            self.path = "skid_right"
 
+        elif (vr > 0.0) and (vl < 0.0) and (abs(vl) == abs(vr)):
+            ## rotatiing CCW
+            linear_vel = 0
+            angular_vel = (vr-vl)/self._track_width
+            self._odom['yaw'] = self._odom['yaw'] + angular_vel*dt
 
-        angular_pos = self._odom['yaw'] + angular_vel * dt
+            self.path = "skid_left"
 
+        elif abs(vl) > abs(vr):
+            ## curving CW
+            linear_vel = (vl + vr)/2.0
+            angular_vel = (vl-vr)/self._track_width
+            R_ICC = (self._track_width/2.0)*((vl+vr)/(vl-vr))
 
-        x_dot = linear_vel * cos(angular_pos)
-        y_dot = linear_vel * sin(angular_pos)
+            self._odom['x'] = self._odom['x'] - R_ICC*np.sin(self._odom['yaw']) + R_ICC*np.sin(self._odom['yaw'] + angular_vel*dt)
+            self._odom['y'] = self._odom['y'] + R_ICC*np.cos(self._odom['yaw']) - R_ICC*np.cos(self._odom['yaw'] + angular_vel*dt)
+            self._odom['yaw'] = self._odom['yaw'] - angular_vel*dt
+
+            self.path = "curve_right"
+
+        elif abs(vl) < abs(vr):
+            ## curving CCW
+            linear_vel = (vl + vr)/2.0
+            angular_vel = (vr-vl)/self._track_width
+            R_ICC = (self._track_width/2.0)*((vr+vl)/(vr-vl))
+
+            self._odom['x'] = self._odom['x'] - R_ICC*np.sin(self._odom['yaw']) + R_ICC*np.sin(self._odom['yaw'] + angular_vel*dt)
+            self._odom['y'] = self._odom['y'] + R_ICC*np.cos(self._odom['yaw']) - R_ICC*np.cos(self._odom['yaw'] + angular_vel*dt)
+            self._odom['yaw'] = self._odom['yaw'] + angular_vel*dt
+
+            self.path = "curve_left"
+
+        elif vl == vr:
+            linear_vel = (vl + vr)/2.0
+            angular_vel = 0.0
+            self._odom['x'] = self._odom['x'] + linear_vel*np.cos(self._odom['yaw'])*dt
+            self._odom['y'] = self._odom['y'] + linear_vel*np.sin(self._odom['yaw'])*dt
+            self._odom['yaw'] = self._odom['yaw']
+            self.path = "straight"
+
+        else:
+            linear_vel = 0.0
+            angular_vel = 0.0
+            R_ICC = 0.0
 
         # Update odometry
-        self._odom['x']= self._odom['x'] + dt* x_dot
-        self._odom['y']= self._odom['y'] + dt* y_dot
-        self._odom['yaw'] = angular_pos
-
-        self._odom['x_dot'] = x_dot
-        self._odom['y_dot'] = y_dot
-
         self._odom['v'] = linear_vel
         self._odom['w'] = angular_vel
 
@@ -98,4 +135,4 @@ class DiffDrive:
     def resetOdom(self):
         """Reset Odom to origin
         """
-        self._odom = {'x':0,'y':0,'yaw':0,'x_dot':0,'y_dot':0,'v':0,'w':0}
+        self._odom = {'x':0,'y':0,'yaw':0,'v':0,'w':0}

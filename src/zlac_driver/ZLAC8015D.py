@@ -134,11 +134,11 @@ class Controller:
 
 	def set_mode(self, MODE):
 		if MODE == 1:
-			print("Set relative position control")
+			print("ZLAC8015D Driver set into relative position control")
 		elif MODE == 2:
-			print("Set absolute position control")
+			print("ZLAC8015D Driver set into absolute position control")
 		elif MODE == 3:
-			print("Set speed rpm control")
+			print("ZLAC8015D Driver set into Speed control mode")
 		else:
 			print("set_mode ERROR: set only 1, 2, or 3")
 			return 0
