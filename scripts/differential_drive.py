@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import logging
 from math import *
 import numpy as np
-
+import rospy
 
 class DiffDrive:
     """Differential drive kinematics for 2-wheel robot
@@ -73,58 +73,61 @@ class DiffDrive:
         vl = self._l_vel
         vr = self._r_vel
 
-        if (vl > 0.0) and (vr < 0.0) and (abs(vl) == abs(vr)):
-            ## rotatiing CW
-            linear_vel = 0
-            angular_vel = (vl-vr)/self._track_width
-            self._odom['yaw'] = self._odom['yaw'] + angular_vel*dt
+        try:
+            if (vl > 0.0) and (vr < 0.0) and (abs(vl) == abs(vr)):
+                ## rotatiing CW
+                linear_vel = 0
+                angular_vel = (vl-vr)/self._track_width
+                self._odom['yaw'] = self._odom['yaw'] + angular_vel*dt
 
-            self.path = "skid_right"
+                self.path = "skid_right"
 
-        elif (vr > 0.0) and (vl < 0.0) and (abs(vl) == abs(vr)):
-            ## rotatiing CCW
-            linear_vel = 0
-            angular_vel = (vr-vl)/self._track_width
-            self._odom['yaw'] = self._odom['yaw'] + angular_vel*dt
+            elif (vr > 0.0) and (vl < 0.0) and (abs(vl) == abs(vr)):
+                ## rotatiing CCW
+                linear_vel = 0
+                angular_vel = (vr-vl)/self._track_width
+                self._odom['yaw'] = self._odom['yaw'] + angular_vel*dt
 
-            self.path = "skid_left"
+                self.path = "skid_left"
 
-        elif abs(vl) > abs(vr):
-            ## curving CW
-            linear_vel = (vl + vr)/2.0
-            angular_vel = (vl-vr)/self._track_width
-            R_ICC = (self._track_width/2.0)*((vl+vr)/(vl-vr))
+            elif abs(vl) > abs(vr):
+                ## curving CW
+                linear_vel = (vl + vr)/2.0
+                angular_vel = (vl-vr)/self._track_width
+                R_ICC = (self._track_width/2.0)*((vl+vr)/(vl-vr))
 
-            self._odom['x'] = self._odom['x'] - R_ICC*np.sin(self._odom['yaw']) + R_ICC*np.sin(self._odom['yaw'] + angular_vel*dt)
-            self._odom['y'] = self._odom['y'] + R_ICC*np.cos(self._odom['yaw']) - R_ICC*np.cos(self._odom['yaw'] + angular_vel*dt)
-            self._odom['yaw'] = self._odom['yaw'] - angular_vel*dt
+                self._odom['x'] = self._odom['x'] - R_ICC*np.sin(self._odom['yaw']) + R_ICC*np.sin(self._odom['yaw'] + angular_vel*dt)
+                self._odom['y'] = self._odom['y'] + R_ICC*np.cos(self._odom['yaw']) - R_ICC*np.cos(self._odom['yaw'] + angular_vel*dt)
+                self._odom['yaw'] = self._odom['yaw'] - angular_vel*dt
 
-            self.path = "curve_right"
+                self.path = "curve_right"
 
-        elif abs(vl) < abs(vr):
-            ## curving CCW
-            linear_vel = (vl + vr)/2.0
-            angular_vel = (vr-vl)/self._track_width
-            R_ICC = (self._track_width/2.0)*((vr+vl)/(vr-vl))
+            elif abs(vl) < abs(vr):
+                ## curving CCW
+                linear_vel = (vl + vr)/2.0
+                angular_vel = (vr-vl)/self._track_width
+                R_ICC = (self._track_width/2.0)*((vr+vl)/(vr-vl))
 
-            self._odom['x'] = self._odom['x'] - R_ICC*np.sin(self._odom['yaw']) + R_ICC*np.sin(self._odom['yaw'] + angular_vel*dt)
-            self._odom['y'] = self._odom['y'] + R_ICC*np.cos(self._odom['yaw']) - R_ICC*np.cos(self._odom['yaw'] + angular_vel*dt)
-            self._odom['yaw'] = self._odom['yaw'] + angular_vel*dt
+                self._odom['x'] = self._odom['x'] - R_ICC*np.sin(self._odom['yaw']) + R_ICC*np.sin(self._odom['yaw'] + angular_vel*dt)
+                self._odom['y'] = self._odom['y'] + R_ICC*np.cos(self._odom['yaw']) - R_ICC*np.cos(self._odom['yaw'] + angular_vel*dt)
+                self._odom['yaw'] = self._odom['yaw'] + angular_vel*dt
 
-            self.path = "curve_left"
+                self.path = "curve_left"
 
-        elif vl == vr:
-            linear_vel = (vl + vr)/2.0
-            angular_vel = 0.0
-            self._odom['x'] = self._odom['x'] + linear_vel*np.cos(self._odom['yaw'])*dt
-            self._odom['y'] = self._odom['y'] + linear_vel*np.sin(self._odom['yaw'])*dt
-            self._odom['yaw'] = self._odom['yaw']
-            self.path = "straight"
+            elif vl == vr:
+                linear_vel = (vl + vr)/2.0
+                angular_vel = 0.0
+                self._odom['x'] = self._odom['x'] + linear_vel*np.cos(self._odom['yaw'])*dt
+                self._odom['y'] = self._odom['y'] + linear_vel*np.sin(self._odom['yaw'])*dt
+                self._odom['yaw'] = self._odom['yaw']
+                self.path = "straight"
 
-        else:
-            linear_vel = 0.0
-            angular_vel = 0.0
-            R_ICC = 0.0
+            else:
+                linear_vel = 0.0
+                angular_vel = 0.0
+                R_ICC = 0.0
+        except Exception as e:
+                rospy.logerr_throttle(1, "[Odom Calculation] Error in Calculation: %s", e)
 
         # Update odometry
         self._odom['v'] = linear_vel

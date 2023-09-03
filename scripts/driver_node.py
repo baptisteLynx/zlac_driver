@@ -157,6 +157,7 @@ class Driver:
             # Send target velocity to the motor controller
             try:
                 self.motors.set_rpm(L_rpm=self._target_whl_rpm["l"],R_rpm=self._target_whl_rpm["r"])
+                rospy.loginfo(f"Motor RPM set to L={self._target_whl_rpm['l']}, R={self._target_whl_rpm['r']}")
                 
             except Exception as e:
                 rospy.logerr_throttle(1, "[applyControls] Error in setting wheel velocity: %s", e)
@@ -175,9 +176,9 @@ class Driver:
 
         # TODO
         # Limit velocity by acceleration
-        # current_t = time()
+        current_t = time()
         # dt = current_t - self._last_cmd_t
-        # self._last_cmd_t = current_t
+        self._last_cmd_t = current_t
         # # odom = self._diff_drive.calcRobotOdom(dt)
         # current_v = odom['v']
         # current_w = odom['w']
