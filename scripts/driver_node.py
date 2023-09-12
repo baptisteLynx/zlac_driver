@@ -39,7 +39,7 @@ class Driver:
         
         self._wheel_radius = rospy.get_param("~wheel_radius", 0.1016)
 
-        self._track_width = rospy.get_param("~track_width", 0.45)
+        self._track_width = rospy.get_param("~track_width", 0.476)
 
         #TODO Max speed limit at driver level to be implimented 
         self._max_vx = rospy.get_param("~max_vx", 1.5)
