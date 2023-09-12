@@ -1,10 +1,17 @@
 
-from pymodbus.client import ModbusSerialClient as ModbusClient
+from pymodbus.client.sync import ModbusSerialClient as ModbusClient
+# from pymodbus.client import ModbusSerialClient as ModbusClient
 import numpy as np
+import logging
+
+# Configure logging settings for pymodbus
+logging.getLogger('pymodbus').setLevel(logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
+
 
 class Controller:
 
-	def __init__(self, port="/dev/ttyACM0"):
+	def __init__(self, port="/dev/ttyUSB0"):
 
 		self._port = port
 
@@ -99,19 +106,18 @@ class Controller:
 		self.R_Wheel = 0.105 #meter
 
 	## Some time if read immediatly after write, it would show ModbusIOException when get data from registers
-	def modbus_fail_read_handler(self, ADDR, WORD, slaveid):
+	def modbus_fail_read_handler(self, ADDR, WORD):
 
 		read_success = False
 		reg = [None]*WORD
 		while not read_success:
-			result = self.client.read_holding_registers(ADDR, WORD, unit=slaveid)
+			result = self.client.read_holding_registers(ADDR, WORD, unit=self.ID)
 			try:
 				for i in range(WORD):
 					reg[i] = result.registers[i]
 				read_success = True
 			except AttributeError as e:
 				print(e)
-				print("fck")
 				pass
 
 		return reg
@@ -126,38 +132,38 @@ class Controller:
 
 		return V
 
-	def set_mode(self, MODE,slaveid):
+	def set_mode(self, MODE):
 		if MODE == 1:
-			print("Set relative position control")
+			print("ZLAC8015D Driver set into relative position control")
 		elif MODE == 2:
-			print("Set absolute position control")
+			print("ZLAC8015D Driver set into absolute position control")
 		elif MODE == 3:
-			print("Set speed rpm control")
+			print("ZLAC8015D Driver set into Speed control mode")
 		else:
 			print("set_mode ERROR: set only 1, 2, or 3")
 			return 0
 
-		result = self.client.write_register(self.OPR_MODE, MODE, unit=slaveid)
+		result = self.client.write_register(self.OPR_MODE, MODE, unit=self.ID)
 		return result
 
-	def get_mode(self,slaveid):
+	def get_mode(self):
 
 		# result = self.client.read_holding_registers(self.OPR_MODE, 1, unit=self.ID)
-		registers = self.modbus_fail_read_handler(self.OPR_MODE, 1, slaveid)
+		registers = self.modbus_fail_read_handler(self.OPR_MODE, 1)
 
 		mode = registers[0]
 
 		return mode
 
-	def enable_motor(self,slaveid):
-		result = self.client.write_register(self.CONTROL_REG, self.ENABLE, unit=slaveid)
+	def enable_motor(self):
+		result = self.client.write_register(self.CONTROL_REG, self.ENABLE, unit=self.ID)
 
-	def disable_motor(self,slaveid):
-		result = self.client.write_register(self.CONTROL_REG, self.DOWN_TIME, unit=slaveid)
+	def disable_motor(self):
+		result = self.client.write_register(self.CONTROL_REG, self.DOWN_TIME, unit=self.ID)
 
-	def get_fault_code(self,slaveid):
+	def get_fault_code(self):
 
-		fault_codes = self.client.read_holding_registers(self.L_FAULT, 2, unit=slaveid)
+		fault_codes = self.client.read_holding_registers(self.L_FAULT, 2, unit=self.ID)
 
 		L_fault_code = fault_codes.registers[0]
 		R_fault_code = fault_codes.registers[1]
@@ -167,25 +173,10 @@ class Controller:
 
 		return (L_fault_flag, L_fault_code), (R_fault_flag, R_fault_code)
 
-	def clear_alarm(self,slaveid):
-		result = self.client.write_register(self.CONTROL_REG, self.ALRM_CLR, unit=slaveid)
+	def clear_alarm(self):
+		result = self.client.write_register(self.CONTROL_REG, self.ALRM_CLR, unit=self.ID)
 
-	def set_accel_time(self, L_ms, R_ms,slaveid):
-
-		if L_ms > 32767:
-			L_ms = 32767
-		elif L_ms < 0:
-			L_ms = 0
-
-		if R_ms > 32767:
-			R_ms = 32767
-		elif R_ms < 0:
-			R_ms = 0
-
-		result = self.client.write_registers(self.L_ACL_TIME, [int(L_ms),int(R_ms)], unit=slaveid)
-
-
-	def set_decel_time(self, L_ms, R_ms,slaveid):
+	def set_accel_time(self, L_ms, R_ms):
 
 		if L_ms > 32767:
 			L_ms = 32767
@@ -197,7 +188,22 @@ class Controller:
 		elif R_ms < 0:
 			R_ms = 0
 
-		result = self.client.write_registers(self.L_DCL_TIME, [int(L_ms), int(R_ms)], unit=slaveid)
+		result = self.client.write_registers(self.L_ACL_TIME, [int(L_ms),int(R_ms)], unit=self.ID)
+
+
+	def set_decel_time(self, L_ms, R_ms):
+
+		if L_ms > 32767:
+			L_ms = 32767
+		elif L_ms < 0:
+			L_ms = 0
+
+		if R_ms > 32767:
+			R_ms = 32767
+		elif R_ms < 0:
+			R_ms = 0
+
+		result = self.client.write_registers(self.L_DCL_TIME, [int(L_ms), int(R_ms)], unit=self.ID)
 
 	def int16Dec_to_int16Hex(self,int16):
 
@@ -209,7 +215,7 @@ class Controller:
 		return all_bytes
 
 
-	def set_rpm(self, L_rpm, R_rpm, slave_id):
+	def set_rpm(self, L_rpm, R_rpm):
 
 		if L_rpm > 3000:
 			L_rpm = 3000
@@ -224,24 +230,24 @@ class Controller:
 		left_bytes = self.int16Dec_to_int16Hex(L_rpm)
 		right_bytes = self.int16Dec_to_int16Hex(R_rpm)
 
-		result = self.client.write_registers(self.L_CMD_RPM, [left_bytes, right_bytes], unit=slave_id)
+		result = self.client.write_registers(self.L_CMD_RPM, [left_bytes, right_bytes], unit=self.ID)
 
-	def get_rpm(self,slaveid):
+	def get_rpm(self):
 
 
 		# rpms = self.client.read_holding_registers(self.L_FB_RPM, 2, unit=self.ID)
 		# fb_L_rpm = np.int16(rpms.registers[0])/10.0
 		# fb_R_rpm = np.int16(rpms.registers[1])/10.0
 
-		registers = self.modbus_fail_read_handler(self.L_FB_RPM, 2, slaveid)
+		registers = self.modbus_fail_read_handler(self.L_FB_RPM, 2)
 		fb_L_rpm = np.int16(registers[0])/10.0
 		fb_R_rpm = np.int16(registers[1])/10.0
 
 		return fb_L_rpm, fb_R_rpm
 
-	def get_linear_velocities(self,slaveid):
+	def get_linear_velocities(self):
 
-		rpmL, rpmR = self.get_rpm(slaveid)
+		rpmL, rpmR = self.get_rpm()
 
 		VL = self.rpm_to_linear(rpmL)
 		VR = self.rpm_to_linear(-rpmR)
@@ -252,7 +258,7 @@ class Controller:
 
 			return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
-	def set_maxRPM_pos(self, max_L_rpm, max_R_rpm,slaveid):
+	def set_maxRPM_pos(self, max_L_rpm, max_R_rpm):
 
 		if max_L_rpm > 1000:
 			max_L_rpm = 1000
@@ -264,19 +270,19 @@ class Controller:
 		elif max_R_rpm < 1:
 			max_R_rpm = 1
 
-		result = self.client.write_registers(self.L_MAX_RPM_POS, [int(max_L_rpm), int(max_R_rpm)], unit=slaveid)
+		result = self.client.write_registers(self.L_MAX_RPM_POS, [int(max_L_rpm), int(max_R_rpm)], unit=self.ID)
 
-	def set_position_async_control(self,slaveid):
+	def set_position_async_control(self):
 
-		result = self.client.write_register(self.POS_CONTROL_TYPE, self.ASYNC, unit=slaveid)
+		result = self.client.write_register(self.POS_CONTROL_TYPE, self.ASYNC, unit=self.ID)
 
-	def move_left_wheel(self,slaveid):
+	def move_left_wheel(self):
 
-		result = self.client.write_register(self.CONTROL_REG, self.POS_L_START, unit=slaveid)
+		result = self.client.write_register(self.CONTROL_REG, self.POS_L_START, unit=self.ID)
 
-	def move_right_wheel(self,slaveid):
+	def move_right_wheel(self):
 
-		result = self.client.write_register(self.CONTROL_REG, self.POS_R_START, unit=slaveid)
+		result = self.client.write_register(self.CONTROL_REG, self.POS_R_START, unit=self.ID)
 
 	def deg_to_32bitArray(self, deg):
 
@@ -286,15 +292,15 @@ class Controller:
 
 		return [HI_WORD, LO_WORD]
 
-	def set_relative_angle(self, ang_L, ang_R,slaveid):
+	def set_relative_angle(self, ang_L, ang_R):
 
 		L_array = self.deg_to_32bitArray(ang_L)
 		R_array = self.deg_to_32bitArray(ang_R)
 		all_cmds_array = L_array + R_array
 
-		result = self.client.write_registers(self.L_CMD_REL_POS_HI, all_cmds_array, unit=slaveid)
+		result = self.client.write_registers(self.L_CMD_REL_POS_HI, all_cmds_array, unit=self.ID)
 
-	def get_wheels_travelled(self,slaveid):
+	def get_wheels_travelled(self):
 
 		# read_success = False
 		# while not read_success:
@@ -317,7 +323,7 @@ class Controller:
 		# 		# print("error")
 		# 		pass
 
-		registers = self.modbus_fail_read_handler(self.L_FB_POS_HI, 4, slaveid)
+		registers = self.modbus_fail_read_handler(self.L_FB_POS_HI, 4)
 		l_pul_hi = registers[0]
 		l_pul_lo = registers[1]
 		r_pul_hi = registers[2]
@@ -330,9 +336,9 @@ class Controller:
 
 		return l_travelled, r_travelled
 
-	def get_wheels_tick(self,slaveid):
+	def get_wheels_tick(self):
 
-		registers = self.modbus_fail_read_handler(self.L_FB_POS_HI, 4,slaveid)
+		registers = self.modbus_fail_read_handler(self.L_FB_POS_HI, 4)
 		l_pul_hi = registers[0]
 		l_pul_lo = registers[1]
 		r_pul_hi = registers[2]
